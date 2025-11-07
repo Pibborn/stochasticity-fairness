@@ -1,3 +1,0 @@
-german
-ExponentiatedGradient
-42

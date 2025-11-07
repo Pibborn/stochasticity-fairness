@@ -1,3 +1,0 @@
-adult
-ICVAE
-42

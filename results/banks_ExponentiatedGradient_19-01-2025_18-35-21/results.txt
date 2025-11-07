@@ -1,3 +1,0 @@
-banks
-ExponentiatedGradient
-42
