@@ -1,0 +1,3 @@
+adult
+ExponentiatedGradient
+42
