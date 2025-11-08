@@ -12,8 +12,6 @@ from fair_metrics import group_pairwise_accuracy, auc_discrimination
 
 from FairModels.qkerasV3 import *
 
-import wandb
-
 
 colors_points = [
     (57 / 255, 106 / 255, 177 / 255),  # blue
@@ -237,14 +235,14 @@ class BinaryCallback(tf.keras.callbacks.Callback):
             plt.scatter(MIs, MIy, c=colors_points[3], marker='x', s=40)
             ax_kwargs.set_xlabel(r'$I(L_n;S)$')
             ax_kwargs.set_ylabel(r'$I(L_n;Y)$')
-            table = wandb.Table(data=[[s, y] for (s, y) in zip(self.MIs_list, self.MIy_list)],
-                                columns=["MI_s", "MI_y"])
-            wandb.log({'MI table': table})
-            plt.savefig("results_mi/{}_mis_vs_miy.pdf".format(wandb.run.id))
-            plt.savefig("results_mi/mis_vs_miy.pdf")
-            wandb.log({"mi_tradeoff": fig})
-            wandb.log({'I(L_n;S)': self.MIs_list})
-            wandb.log({'I(L_n;Y)': self.MIy_list})
+            #table = wandb.Table(data=[[s, y] for (s, y) in zip(self.MIs_list, self.MIy_list)],
+            #                    columns=["MI_s", "MI_y"])
+            #wandb.log({'MI table': table})
+            #plt.savefig("results_mi/{}_mis_vs_miy.pdf".format(wandb.run.id))
+            #plt.savefig("results_mi/mis_vs_miy.pdf")
+            #wandb.log({"mi_tradeoff": fig})
+            #wandb.log({'I(L_n;S)': self.MIs_list})
+            #wandb.log({'I(L_n;Y)': self.MIy_list})
             plt.close()
 
             fig, ax_kwargs = plt.subplots(figsize=(3, 2.5), constrained_layout=True)
@@ -265,11 +263,11 @@ class BinaryCallback(tf.keras.callbacks.Callback):
             ax_kwargs.set_xlabel('# batch')
             ax_kwargs.set_ylabel('entropy')
             plt.savefig("results_mi/entropy.pdf")
-            wandb.log({"entropy_tradeoff": fig})
-            wandb.log({"H(L_n|Y_1)": [np.mean(self.H_L_n_y1_list[i]) for i in range(len(self.H_L_n_list))]})
-            wandb.log({"H(L_n|Y_0)": [np.mean(self.H_L_n_y0_list[i]) for i in range(len(self.H_L_n_list))]})
-            wandb.log({"H(L_n|S_1)": [np.mean(self.H_L_n_s1_list[i]) for i in range(len(self.H_L_n_list))]})
-            wandb.log({"H(L_n|S_0)": [np.mean(self.H_L_n_s0_list[i]) for i in range(len(self.H_L_n_list))]})
+            #wandb.log({"entropy_tradeoff": fig})
+            #wandb.log({"H(L_n|Y_1)": [np.mean(self.H_L_n_y1_list[i]) for i in range(len(self.H_L_n_list))]})
+            #wandb.log({"H(L_n|Y_0)": [np.mean(self.H_L_n_y0_list[i]) for i in range(len(self.H_L_n_list))]})
+            #wandb.log({"H(L_n|S_1)": [np.mean(self.H_L_n_s1_list[i]) for i in range(len(self.H_L_n_list))]})
+            #wandb.log({"H(L_n|S_0)": [np.mean(self.H_L_n_s0_list[i]) for i in range(len(self.H_L_n_list))]})
             plt.close()
 
     def on_epoch_end(self, epoch, logs=None):

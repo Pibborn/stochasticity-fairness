@@ -1,6 +1,5 @@
 import sys
 import os
-sys.path.append('../src')
 
 from datetime import datetime
 import pandas as pd
@@ -20,9 +19,9 @@ import optuna
 from load_data import DATALOADER
 
 # Import models
-from src.FairModels.ICVAE import ICVAE
-from src.FairModels.BinaryMI import BinaryMI
-from src.FairModels.VFAE import VFAE
+from FairModels.ICVAE import ICVAE
+from FairModels.BinaryMI import BinaryMI
+from FairModels.VFAE import VFAE
 
 from entropy_scores import entropy_scores
 
@@ -98,10 +97,6 @@ def _hp_optimization(model, hps, X, y, S,n_trials, n_folds, random_seed, stratif
                 hp_trial_dict[hp[0]] = trial.suggest_float(hp[0], hp[2][0], hp[2][1])
         
         cur_model = model(**hp_trial_dict,**fixed_params)
-        with open(f"{path}/params.txt", 'a') as file: 
-            print(trial.number) 
-            print(hp_trial_dict)
-            print(fixed_params)
         
         if stratified:
             kf = StratifiedKFold(n_splits=n_folds, random_state=random_seed, shuffle=True)
@@ -289,22 +284,6 @@ if __name__ == "__main__":
     np.random.seed(SEED)
 
     X_train, X_test, y_train, y_test, S_train, S_test = DATALOADER[dataset](SEED)
-
-    # Saves hashes to compare the loaded data
-    hash1 = hashlib.sha256(X_train.tobytes()).hexdigest()
-    hash2 = hashlib.sha256(X_test.tobytes()).hexdigest()
-    hash3 = hashlib.sha256(y_train.tobytes()).hexdigest()
-    hash4 = hashlib.sha256(y_test.tobytes()).hexdigest()
-    hash5 = hashlib.sha256(S_train.tobytes()).hexdigest()
-    hash6 = hashlib.sha256(S_test.tobytes()).hexdigest()
-    with open(f"{path}/hashes_data.txt", 'a') as file:  
-        print(hash1,file=file)
-        print(hash2,file=file)
-        print(hash3,file=file)
-        print(hash4,file=file)
-        print(hash5,file=file)
-        print(hash6,file=file)
-
 
     if args.s == 0:
         S_train = S_train.flatten()
