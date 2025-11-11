@@ -157,23 +157,24 @@ def entropy_for_all(cur_model, X_test,optimal_threshold,p,m=None,batch_size=64):
     return entropies_1, entropies_2, entropies_3, entropies_3_scaled, bins ,samples.index, every_score
 
 def test_loop(model,X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,gammas,path,hps={}, do_hp_opt=True):
-    res = {}
     accuracies = pd.DataFrame(columns=["gamma","acc","dp","acc_threshold","dp_threshold","optimal_threshold"])
     accuracies.set_index("gamma", inplace=True)
-    hps.append(("",""))
+
+    if do_hp_opt:
+        hps.append(("gamma","fixed",0))
+        _, best_hps = _hp_optimization(model, hps, X_train, y_train, S_train, 3, 3, SEED)
+        cur_model = model(**best_hps)
+        cur_model.fit(X_train, y_train, S_train)
         
     for gamma in gammas: 
-        hps = hps[:-1]
-        hps.append(("gamma","fixed",gamma))
-        print(f"Gamma: {gamma}")
-        # get best hyperparameters
         if do_hp_opt:
-            _, best_hps = _hp_optimization(model, hps, X_train, y_train, S_train, 50, 3, SEED)
+            best_hps["gamma"] = gamma
+            print(best_hps)
             cur_model = model(**best_hps)
             cur_model.fit(X_train, y_train, S_train)
         else:
             # use default hyperparameters
-            cur_model = model()
+            cur_model = model(gamma=gamma)
             cur_model.fit(X_train, y_train, S_train)
 
         # Get optimal threshold
@@ -285,6 +286,7 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test, S_train, S_test = DATALOADER[dataset](SEED)
 
+    # Filter data to only contain one sensitive group
     if args.s == 0:
         S_train = S_train.flatten()
         X_train = X_train[S_train == 0]
@@ -314,11 +316,6 @@ if __name__ == "__main__":
     else:
         model = MODELS[model_name]
         hps = HYPERPARAMS[model_name]
-
-        with open(f"{path}/results.txt", 'a') as file:  
-            print(dataset,file=file)
-            print(model_name,file=file)
-            print(SEED,file=file)
 
         gammas = np.linspace(0,1,11)
         test_loop(model,X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,gammas,path,hps,do_hp_opt=args.hp_opt)
