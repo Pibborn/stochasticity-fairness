@@ -162,7 +162,7 @@ def test_loop(model,X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,
 
     if do_hp_opt:
         hps.append(("gamma","fixed",0))
-        _, best_hps = _hp_optimization(model, hps, X_train, y_train, S_train, 3, 3, SEED)
+        _, best_hps = _hp_optimization(model, hps, X_train, y_train, S_train, 100, 3, SEED)
         cur_model = model(**best_hps)
         cur_model.fit(X_train, y_train, S_train)
         
