@@ -110,7 +110,7 @@ def _hp_optimization(model, hps, X, y, S,n_trials, n_folds, random_seed, stratif
             cur_acc = roc_auc_score(y[test_index], y_pred)
             auc.append(cur_acc)
         return np.mean(auc)
-    study = optuna.create_study(direction='maximize')
+    study = optuna.create_study(direction='maximize',sampler=optuna.samplers.RandomSampler())
     study.optimize(objective, n_trials=n_trials)
     return study.best_value ,{**study.best_params, **fixed_params}
 
