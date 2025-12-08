@@ -47,7 +47,7 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
     entropy_vec = np.vectorize(entropy)
     entropies.append(entropy_vec(mean))
 
-    for dt in [np.float15, np.float32, np.float64, np.longdouble]:
+    for dt in [np.float16, np.float32, np.float64, np.longdouble]:
         entropy_vec = np.vectorize(entropy,otypes=[dt])
         entropies.append(entropy_vec(mean))
     
