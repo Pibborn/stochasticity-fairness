@@ -40,6 +40,8 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
         multiple_samples = np.repeat(samples.iloc[i:i+cur_batch_size].to_numpy(), p,axis=0)
         pred = model.predict(multiple_samples)
         pred_reshape = pred.reshape(cur_batch_size,p)
+        if i==0:
+            datatype = pred_reshape.dtype
 
         mean[i:i+cur_batch_size] = np.mean(pred_reshape,axis=1)
     
@@ -51,7 +53,7 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
         entropy_vec = np.vectorize(entropy,otypes=[dt])
         entropies.append(entropy_vec(mean))
     
-    return entropies, mean ,samples.index
+    return entropies, mean ,samples.index, datatype
 
 def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,epsilons,path):
     accuracies = pd.DataFrame(columns=["epsilon","acc","dp"])
@@ -71,7 +73,7 @@ def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_siz
         accuracies.loc[epsilon] = acc, dp
         accuracies.to_csv(f"{path}/accuracies.csv")
 
-        entropies, mean, index = entropy_expgrad(cur_model,X_test,p=p,m=m,batch_size=batch_size)
+        entropies, mean, index, datatype = entropy_expgrad(cur_model,X_test,p=p,m=m,batch_size=batch_size)
 
         # save results to csv
         new_indices = [X_test.index.get_loc(idx) for idx in index] # Some workaround because S is a numpy array and X a pandas dataframe
@@ -83,6 +85,9 @@ def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_siz
         total_results = pd.concat([total_results ,X_test], axis=1,join="inner")
         total_results.to_csv(f"{path}/results_{round(epsilon,3)}.csv",index=False)
 
+        with open(f"{path}/datatype.txt","a") as file:
+            file.write(datatype)
+
 
 if __name__ == "__main__":
     #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -93,10 +98,11 @@ if __name__ == "__main__":
     argparser.add_argument('--num_samples',type=int, help='Number of samples which undergo the test',default=None)
     argparser.add_argument('--batch_size',type=int, help='Batch size for prediction',default=64)
     argparser.add_argument('--hp-opt', action='store_true', help='Run an hp opt study for each gamma')
+    argparser.add_argument("--dataset", type=str, required=True)
     
     args = argparser.parse_args()
     model_name = "ExpGrad"
-    dataset = "adult"
+    dataset = args.dataset
     path = args.path
     if not os.path.exists(path):
         raise ValueError("Path does not exist")

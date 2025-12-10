@@ -15,6 +15,9 @@ module load lang/Python/3.9.6-GCCcore-11.2.0
 module unload lang/SciPy-bundle/2021.10-foss-2021b
 
 #========[ + + + + Job Steps + + + + ]========#
+datasets=("adult" "compas" "german" "banks" "folktables_AK" "folktables_HI")
+dataset=${datasets[SLURM_ARRAY_TASK_ID]}
+
 source  ../venv/bin/activate
-srun python3 vectorize_experiment.py --path=results
+srun python3 vectorize_experiment.py --path=results --dataset=$dataset
 deactivate
