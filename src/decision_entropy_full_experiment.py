@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from fairlearn.reductions import ExponentiatedGradient, DemographicParity
 from fairlearn.metrics import demographic_parity_difference
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 import argparse
 import random
 import tensorflow as tf
@@ -231,7 +232,7 @@ def test_loop(model,X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,
         #np.savetxt(f"{path}/scores_{round(gamma,1)}", every_score, delimiter=",")
 
 
-def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,epsilons,path):
+def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,epsilons,path,basemodel):
     res = {}
     accuracies = pd.DataFrame(columns=["epsilon","acc","dp"])
     accuracies.set_index("epsilon", inplace=True)
@@ -239,7 +240,7 @@ def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_siz
     for epsilon in epsilons: 
 
         print(f"Epsilon: {epsilon}")
-        cur_model = ExponentiatedGradient(DecisionTreeClassifier(), constraints=DemographicParity(difference_bound=epsilon))
+        cur_model = ExponentiatedGradient(basemodel, constraints=DemographicParity(difference_bound=epsilon))
         cur_model.fit(X_train, y_train, sensitive_features=S_train)
         
         y_pred = cur_model.predict(X_test)
@@ -290,7 +291,6 @@ if __name__ == "__main__":
         path = f"{path}/{dataset}_{model_name}_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}"
     else:
         path = f"{path}/{dataset}_{model_name}_S{args.s}_{datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}"
-    os.makedirs(path, exist_ok=True)
     
     SEED = args.seed
     # set seed
@@ -325,9 +325,17 @@ if __name__ == "__main__":
 
     if model_name=="ExpGrad":
         epsilons = np.linspace(0.01,0.1,11)
-        test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,epsilons,path)
+        
+        path1 = f"{path}_dt"
+        os.makedirs(path1, exist_ok=True)
+        test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,epsilons,path1,DecisionTreeClassifier())
+
+        path2 = f"{path}_logreg"
+        os.makedirs(path2, exist_ok=True)
+        test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,epsilons,path2,LogisticRegression())
     
     else:
+        os.makedirs(path, exist_ok=True)
         model = MODELS[model_name]
         hps = HYPERPARAMS[model_name]
 
