@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from fairlearn.reductions import ExponentiatedGradient, DemographicParity
 from fairlearn.metrics import demographic_parity_difference
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression, LinearRegression
 import argparse
 import random
 import tensorflow as tf
@@ -70,10 +71,10 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
         pred_reshape = pred.reshape(cur_batch_size,p)
 
         mean[i:i+cur_batch_size] = np.mean(pred_reshape,axis=1)
-    
+
     entropy_vec = np.vectorize(entropy)
     entropies = entropy_vec(mean)
-    
+
     return entropies, mean ,samples.index
 
     
