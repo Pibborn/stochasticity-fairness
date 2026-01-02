@@ -50,7 +50,7 @@ def entropy(p):
         return 0
     return -p*np.log2(p) - (1-p)*np.log2(1-p)
 
-# entropy_vec = np.vectorize(entropy)
+entropy_vec = np.vectorize(entropy,otypes=[np.float32])
 
 def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
     if m is None or m > X_test.shape[0]:
@@ -63,7 +63,6 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
         samples = X_test.loc[random_rows]
   
     mean = np.zeros(m)
-    entropies = []
 
     for i in range(0,m,batch_size):
         cur_batch_size = min(batch_size,m-i)
@@ -73,12 +72,7 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
 
         mean[i:i+cur_batch_size] = np.mean(pred_reshape,axis=1)
 
-    entropy_vec = np.vectorize(entropy)
-    entropies.append(entropy_vec(mean))
-
-    for dt in [np.float16, np.float32, np.float64, np.longdouble]:
-        entropy_vec = np.vectorize(entropy,otypes=[dt])
-        entropies.append(entropy_vec(mean))
+    entropies = entropy_vec(mean)
 
     return entropies, mean,samples.index
 
@@ -130,8 +124,8 @@ def entropy_for_all(cur_model, X_test,optimal_threshold,p,m=None,batch_size=64):
         random_rows = np.random.choice(X_test.index, size=m,replace=False)
         samples = X_test.loc[random_rows]
     
-    entropies_1 = [np.zeros(m) for _ in range(5)]
-    entropies_2 = [np.zeros(m) for _ in range(5)]
+    entropies_1 = np.zeros(m)
+    entropies_2 = np.zeros(m)
     entropies_3 = np.zeros((m,10))
     entropies_3_scaled = np.zeros((m,10))
     bins = np.zeros(m)
@@ -148,19 +142,13 @@ def entropy_for_all(cur_model, X_test,optimal_threshold,p,m=None,batch_size=64):
         # Entropy variant 1) 0.5 thresholds
         y_pred = (pred_reshape > 0.5).astype(int)
         mean_prediction = np.mean(y_pred,axis=1)
-        entropies_1[0][i:i+cur_batch_size] = entropy_vec(mean_prediction)
-        for i,dt in enumerate([np.float16, np.float32, np.float64, np.longdouble]):
-            entropy_vec = np.vectorize(entropy,otypes=[dt])
-            entropies_1[i+1][i:i+cur_batch_size] = entropy_vec(mean_prediction)
+        entropies_1[i:i+cur_batch_size] = entropy_vec(mean_prediction)
 
 
         # Entropy variant 2) Optimal threshold
         y_pred = (pred_reshape > optimal_threshold).astype(int)
         mean_prediction = np.mean(y_pred,axis=1)
-        entropies_2[0][i:i+cur_batch_size] = entropy_vec(mean_prediction)
-        for i,dt in enumerate([np.float16, np.float32, np.float64, np.longdouble]):
-            entropy_vec = np.vectorize(entropy,otypes=[dt])
-            entropies_2[i+1][i:i+cur_batch_size] = entropy_vec(mean_prediction)
+        entropies_2[i:i+cur_batch_size] = entropy_vec(mean_prediction)
 
         # Entropy variant 3) 
         for c in range(cur_batch_size):
@@ -221,9 +209,7 @@ def test_loop(model,X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_size,
         # save results to csv
         new_indices = [X_test.index.get_loc(idx) for idx in index] # Some workaround because S is a numpy array and X a pandas dataframe
         S = S_test.flatten()[new_indices] # If we use less samples then in the test dataset, we need to adjust S_test for further steps
-        total_results = pd.DataFrame({"entropy_1":entropies_1[0],"entropy_1_float16":entropies_1[1],"entropy_1_float32":entropies_1[2],"entropy_1_float64":entropies_1[3],"entropy_1_longdouble":entropies_1[4],
-            "entropy_2":entropies_2[0],"entropy_2_float16":entropies_2[1],"entropy_2_float32":entropies_2[2],"entropy_2_float64":entropies_2[3],"entropy_2_longdouble":entropies_2[4],
-            "mean_entropy_3":np.mean(entropies_3,axis=1),"std_entropy_3":np.std(entropies_3,axis=1),"mean_entropy_3_scaled":np.mean(entropies_3_scaled,axis=1),"std_entropy_3_scaled":np.std(entropies_3_scaled,axis=1),"n_bins":bins})
+        total_results = pd.DataFrame({"entropy_1":entropies_1,"entropy_2":entropies_2,"mean_entropy_3":np.mean(entropies_3,axis=1),"std_entropy_3":np.std(entropies_3,axis=1),"mean_entropy_3_scaled":np.mean(entropies_3_scaled,axis=1),"std_entropy_3_scaled":np.std(entropies_3_scaled,axis=1),"n_bins":bins})
         S_df = pd.DataFrame({"S":S})
         total_results = pd.concat([total_results,S_df],axis=1)
         total_results.set_index(index,inplace=True)
@@ -256,7 +242,7 @@ def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_siz
         # save results to csv
         new_indices = [X_test.index.get_loc(idx) for idx in index] # Some workaround because S is a numpy array and X a pandas dataframe
         S = S_test.flatten()[new_indices] # If we use less samples then in the test dataset, we need to adjust S_test for further steps
-        total_results = pd.DataFrame({"entropy_1":entropies[0],"entropy_float16":entropies[1],"entropy_float32":entropies[2],"entropy_float64":entropies[3],"entropy_longdouble":entropies[4]})
+        total_results = pd.DataFrame({"entropy_1":entropies})
         S_df = pd.DataFrame({"S":S})
         total_results = pd.concat([total_results,S_df],axis=1)
         total_results.set_index(index,inplace=True)
