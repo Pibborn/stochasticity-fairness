@@ -50,7 +50,7 @@ def entropy(p):
         return 0
     return -p*np.log2(p) - (1-p)*np.log2(1-p)
 
-entropy_vec = np.vectorize(entropy)
+# entropy_vec = np.vectorize(entropy)
 
 def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
     if m is None or m > X_test.shape[0]:
@@ -72,15 +72,15 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
         pred_reshape = pred.reshape(cur_batch_size,p)
 
         mean[i:i+cur_batch_size] = np.mean(pred_reshape,axis=1)
-    
+
     entropy_vec = np.vectorize(entropy)
     entropies.append(entropy_vec(mean))
 
     for dt in [np.float16, np.float32, np.float64, np.longdouble]:
         entropy_vec = np.vectorize(entropy,otypes=[dt])
         entropies.append(entropy_vec(mean))
-    
-    return entropies, mean ,samples.index
+
+    return entropies, mean,samples.index
 
     
 
@@ -118,7 +118,7 @@ def _hp_optimization(model, hps, X, y, S,n_trials, n_folds, random_seed, stratif
         return np.mean(auc)
     study = optuna.create_study(direction='maximize',sampler=optuna.samplers.RandomSampler())
     study.optimize(objective, n_trials=n_trials)
-    return study.best_value ,{**study.best_params, **fixed_params}
+    return study.best_value,{**study.best_params, **fixed_params}
 
 def entropy_for_all(cur_model, X_test,optimal_threshold,p,m=None,batch_size=64):
     if m is None or m > X_test.shape[0]:
