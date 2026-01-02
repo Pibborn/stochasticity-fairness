@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from fairlearn.reductions import ExponentiatedGradient, DemographicParity
 from fairlearn.metrics import demographic_parity_difference
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 import argparse
 import random
 import tensorflow as tf
@@ -40,11 +41,10 @@ def entropy_expgrad(model, X_test,m=None,p=1,batch_size=None):
         multiple_samples = np.repeat(samples.iloc[i:i+cur_batch_size].to_numpy(), p,axis=0)
         pred = model.predict(multiple_samples)
         pred_reshape = pred.reshape(cur_batch_size,p)
-        if i==0:
-            datatype = pred_reshape.dtype
 
         mean[i:i+cur_batch_size] = np.mean(pred_reshape,axis=1)
     
+    datatype = mean.dtype
 
     entropy_vec = np.vectorize(entropy)
     entropies.append(entropy_vec(mean))
@@ -62,7 +62,7 @@ def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_siz
     for epsilon in epsilons: 
 
         print(f"Epsilon: {epsilon}")
-        cur_model = ExponentiatedGradient(DecisionTreeClassifier(), constraints=DemographicParity(difference_bound=epsilon))
+        cur_model = ExponentiatedGradient(LogisticRegression(), constraints=DemographicParity(difference_bound=epsilon))
         cur_model.fit(X_train, y_train, sensitive_features=S_train)
         
         y_pred = cur_model.predict(X_test)
@@ -86,7 +86,7 @@ def test_loop_expgrad(X_train,X_test,y_train,y_test,S_train,S_test,p,m,batch_siz
         total_results.to_csv(f"{path}/results_{round(epsilon,3)}.csv",index=False)
 
         with open(f"{path}/datatype.txt","a") as file:
-            file.write(datatype)
+            file.write(str(datatype) + "\n")
 
 
 if __name__ == "__main__":
