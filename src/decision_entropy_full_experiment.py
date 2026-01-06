@@ -38,11 +38,11 @@ MODELS = {
 HYPERPARAMS = {
     "BinaryMI": [('num_hidden_layers',"int",(2,5)),('size_hidden_layers',"int",(5,30)),("kernel_regularizer","categorical",[0,0.01,0.001]),
                  ("drop_out","categorical",[0.0,0.2,0.5]),("set_quantized_position","fixed",True),("run_eagerly","fixed",False),
-                 ("batch_size","fixed",256),("epoch","int",(10,50)),("activation_nonbinary","fixed","relu")],
+                 ("batch_size","categorical",[64,128,256]),("epoch","int",(20,100)),("activation_nonbinary","fixed","relu")],
     "VFAE": [('num_hidden_layers',"int",(2,5)),("size_hidden_layers","int",(5,30)),("kernel_regularizer","categorical",[0,0.01,0.001]),
                  ("drop_out","categorical",[0.0,0.2,0.5]),("batch_size","fixed",256),("epoch","int",(10,50)),("dim_z","int",(5,30))],
     "ICVAE": [('num_hidden_layers',"int",(2,5)),('size_hidden_layers',"int",(5,30)),("kernel_regularizer","categorical",[0,0.01,0.001]),
-                ("drop_out","categorical",[0.0,0.2,0.5]),("batch_size","fixed",256),("epoch","int",(10,50)),("dim_z","int",(5,30)),("feature_activation","fixed","relu")]
+                ("drop_out","categorical",[0.0,0.2,0.5]),("batch_size","categorical",[64,128,256]),("epoch","int",(20,100)),("dim_z","int",(5,30)),("feature_activation","fixed","relu")]
 }
 
 def entropy(p):
