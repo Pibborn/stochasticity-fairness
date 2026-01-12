@@ -16,7 +16,7 @@ module unload lang/SciPy-bundle/2021.10-foss-2021b
 
 #========[ + + + + Job Steps + + + + ]========#
 datasets=("adult" "compas" "german" "banks" "folktables_AK" "folktables_HI")
-models=("BinaryMI" "ICVAE")
+models=("BinaryMI" "ICVAE" "ExpGrad")
 
 num_datatsets=${#datasets[@]}
 num_models=${#models[@]}
@@ -28,5 +28,5 @@ dataset=${datasets[$dataset_index]}
 model=${models[$model_index]}
 
 source  ../venv/bin/activate
-srun python3 decision_entropy_full_experiment.py --dataset=$dataset --model=$model --path=results
+srun python3 decision_entropy_full_experiment.py --dataset=$dataset --model=$model --path=results_fixed --hp-opt
 deactivate

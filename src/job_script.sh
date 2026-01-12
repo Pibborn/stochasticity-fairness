@@ -16,5 +16,5 @@ module unload lang/SciPy-bundle/2021.10-foss-2021b
 
 #========[ + + + + Job Steps + + + + ]========#
 source  ../venv/bin/activate
-srun python3 decision_entropy_full_experiment.py --dataset=adult --model=BinaryMI --path=results
+srun python3 decision_entropy_full_experiment.py --dataset=adult --model=BinaryMI --path=results  --hp-opt
 deactivate
